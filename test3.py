@@ -1,7 +1,12 @@
-import time
-import requests
-from bs4 import BeautifulSoup
 from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from bs4 import BeautifulSoup
+import time
+
+from selenium import webdriver
+import csv  
 
 # Create a new instance of the Chrome driver
 driver = webdriver.Chrome()
@@ -19,12 +24,20 @@ html = driver.page_source
 # Parse the HTML content using BeautifulSoup
 soup = BeautifulSoup(html, 'html.parser')
 
-# Find all <p> tags in the page
-p_tags = soup.find_all('p')
+# Get all <p> tags in the page that contain the Euro symbol
+p_tags = [p for p in soup.find_all('p') if '€' in p.get_text()]
 
-# Print the text content of each <p> tag
-for p in p_tags:
-    print(p.get_text())
+# Get all <span> tags with class="tag"
+s_tags = [s for s in soup.find_all('span', {'class': 'tag'})]
 
-# Close the browser
-driver.quit()
+# Write to CSV
+with open('output.csv', mode='w') as output_file:
+    output_writer = csv.writer(output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+
+    output_writer.writerow(['amount', 'theme'])
+
+    # Iterate through pairs of p_tags and s_tags.
+    for p, s in zip(p_tags, s_tags):
+        output_writer.writerow([p.get_text(), s.get_text()])
+
+# Close the brow
