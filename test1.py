@@ -24,14 +24,20 @@ html = driver.page_source
 # Parse the HTML content using BeautifulSoup
 soup = BeautifulSoup(html, 'html.parser')
 
+button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "tarteaucitronAllDenied2"))) # replace with the ID of the button element
+button.click()
+
 # Get all <p> tags in the page that contain the Euro symbol
 p_tags = [p for p in soup.find_all('p') if '€' in p.get_text()]
 
 # Get all <span> tags with class="tag"
 s_tags = [s for s in soup.find_all('span', {'class': 'tag'})]
 
+button = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "DataTables_Table_0_next"))) # replace with the ID of the button element
+button.click()
+
 # Write to CSV
-with open('output.csv', mode='w') as output_file:
+with open('output1.csv', mode='w') as output_file:
     output_writer = csv.writer(output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 
     output_writer.writerow(['theme', 'montant'])
@@ -41,3 +47,4 @@ with open('output.csv', mode='w') as output_file:
         output_writer.writerow([s.get_text(), p.get_text()])
 
 # Close the brow
+driver.quit()
