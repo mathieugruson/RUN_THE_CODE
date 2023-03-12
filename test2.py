@@ -2,14 +2,13 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
 from bs4 import BeautifulSoup
 import time
 import csv
+import re
+import os
 
-# Create a new instance of the Chrome driver
-# The line of code driver = webdriver.Chrome() is used to create an instance of the Chrome web driver in Python using the Selenium library.
-#Selenium is a popular library used for automating web browsers, and it provides a way to control web browsers through Python code. The webdriver module in Selenium provides a way to interact with various web browsers, including Google Chrome, Firefox, Safari, and others.
-#The webdriver.Chrome() function creates a new instance of the Chrome web driver, which allows you to control the Chrome browser through your Python code. Once you have created a driver instance, you can use various methods provided by Selenium to interact with the browser, such as navigating to a URL, clicking on links and buttons, filling out forms, and more.
 driver = webdriver.Chrome()
 
 # Navigate to the web page
@@ -35,7 +34,8 @@ with open('output1.csv', mode='w') as output_file:
     output_writer.writerow(['date', 'theme', 'montant'])
 
     # Keep scraping the page until the "next page" button is disabled
-    while True:
+    count = 0
+    while count < 41:
         # Get all <p> tags in the page that contain the Euro symbol
         p_tags = [p for p in soup.find_all('p') if '€' in p.get_text() or 'euros' in p.get_text()]
 
@@ -51,14 +51,39 @@ with open('output1.csv', mode='w') as output_file:
             output_writer.writerow([year, s.get_text(), p.get_text()])
         # Click the "next page" button if it's clickable, otherwise exit the loop
         try:
-            button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "DataTables_Table_0_next")))
+            button = WebDriverWait(driver, 2).until(EC.element_to_be_clickable((By.ID, "DataTables_Table_0_next")), message="Button not clickable within 2 seconds.")
             button.click()
             time.sleep(2)
             # Get the updated HTML content and parse it using BeautifulSoup
             html = driver.page_source
             soup = BeautifulSoup(html, 'html.parser')
-        except:
+        except TimeoutException:
+            print("Button not found or not clickable within 10 seconds.")
             break
+        count += 1
 
 # Close the browser
 driver.quit()
+
+# dans cette partie, je separer les differentes sanctions prononcees dans un meme dossier
+with open('output1.csv', mode='r') as input_file, open('output2.csv', mode='w', newline='') as output_file:
+    reader = csv.reader(input_file, delimiter=',', quotechar='"')
+    writer = csv.writer(output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+
+    for row in reader:
+        # Split the "montant" column by comma and write each element as a separate column
+        montant = re.split('\n(?=\d)', row[2])
+        writer.writerow([row[0], row[1]] + montant)
+
+# dans cette partie, je transforme les montants en chiffres
+
+with open('output2.csv', mode='r') as input_file, open('sanctions_amf.csv', mode='w', newline='') as output_file:
+    reader = csv.reader(input_file, delimiter=',', quotechar='"')
+    writer = csv.writer(output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+
+    for row in reader:
+        row[2] = re.sub(r'\D', '', row[2])  # Remove all non-digit characters from column 2
+        writer.writerow(row)
+
+os.remove("output1.csv")
+os.remove("output2.csv")
