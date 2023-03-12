@@ -7,6 +7,9 @@ import time
 import csv
 
 # Create a new instance of the Chrome driver
+# The line of code driver = webdriver.Chrome() is used to create an instance of the Chrome web driver in Python using the Selenium library.
+#Selenium is a popular library used for automating web browsers, and it provides a way to control web browsers through Python code. The webdriver module in Selenium provides a way to interact with various web browsers, including Google Chrome, Firefox, Safari, and others.
+#The webdriver.Chrome() function creates a new instance of the Chrome web driver, which allows you to control the Chrome browser through your Python code. Once you have created a driver instance, you can use various methods provided by Selenium to interact with the browser, such as navigating to a URL, clicking on links and buttons, filling out forms, and more.
 driver = webdriver.Chrome()
 
 # Navigate to the web page
@@ -29,25 +32,28 @@ button.click()
 # Write to CSV
 with open('output1.csv', mode='w') as output_file:
     output_writer = csv.writer(output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-    output_writer.writerow(['theme', 'montant'])
+    output_writer.writerow(['date', 'theme', 'montant'])
 
     # Keep scraping the page until the "next page" button is disabled
     while True:
         # Get all <p> tags in the page that contain the Euro symbol
-        p_tags = [p for p in soup.find_all('p') if '€' in p.get_text()]
+        p_tags = [p for p in soup.find_all('p') if '€' in p.get_text() or 'euros' in p.get_text()]
 
         # Get all <span> tags with class="tag"
         s_tags = [s for s in soup.find_all('span', {'class': 'tag'})]
 
-        # Write the data to the CSV file
-        for p, s in zip(p_tags, s_tags):
-            output_writer.writerow([s.get_text(), p.get_text()])
+        # Get all <span> tags with class="date"
+        d_tags = [d for d in soup.find_all('span', {'class': 'date'})]
 
+        # Write the data to the CSV file
+        for p, s, d in zip(p_tags, s_tags, d_tags):
+            year = d.get_text().split()[-1]  # Extract the last word of the date string
+            output_writer.writerow([year, s.get_text(), p.get_text()])
         # Click the "next page" button if it's clickable, otherwise exit the loop
         try:
             button = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.ID, "DataTables_Table_0_next")))
             button.click()
-            time.sleep(5)
+            time.sleep(2)
             # Get the updated HTML content and parse it using BeautifulSoup
             html = driver.page_source
             soup = BeautifulSoup(html, 'html.parser')
