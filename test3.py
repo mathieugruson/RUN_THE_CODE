@@ -9,10 +9,6 @@ import csv
 import re
 import os
 
-Create a new instance of the Chrome driver
-The line of code driver = webdriver.Chrome() is used to create an instance of the Chrome web driver in Python using the Selenium library.
-Selenium is a popular library used for automating web browsers, and it provides a way to control web browsers through Python code. The webdriver module in Selenium provides a way to interact with various web browsers, including Google Chrome, Firefox, Safari, and others.
-The webdriver.Chrome() function creates a new instance of the Chrome web driver, which allows you to control the Chrome browser through your Python code. Once you have created a driver instance, you can use various methods provided by Selenium to interact with the browser, such as navigating to a URL, clicking on links and buttons, filling out forms, and more.
 driver = webdriver.Chrome()
 
 # Navigate to the web page
@@ -61,7 +57,6 @@ with open('output1.csv', mode='w') as output_file:
             # Get the updated HTML content and parse it using BeautifulSoup
             html = driver.page_source
             soup = BeautifulSoup(html, 'html.parser')
-            print("Clicked the next page button.")
         except TimeoutException:
             print("Button not found or not clickable within 10 seconds.")
             break
@@ -70,27 +65,8 @@ with open('output1.csv', mode='w') as output_file:
 # Close the browser
 driver.quit()
 
+# dans cette partie, je separer les differentes sanctions prononcees dans un meme dossier
 with open('output1.csv', mode='r') as input_file, open('output2.csv', mode='w', newline='') as output_file:
-    reader = csv.reader(input_file, delimiter=',', quotechar='"')
-    writer = csv.writer(output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-
-    for row in reader:
-        # Remove euro symbol and word "euros" from all columns
-        new_row = [re.sub('€', '', cell) for cell in row]
-       # new_row = [re.sub('euros', '', cell) for cell in row]
-        writer.writerow(new_row)
-
-with open('output2.csv', mode='r') as input_file, open('output3.csv', mode='w', newline='') as output_file:
-    reader = csv.reader(input_file, delimiter=',', quotechar='"')
-    writer = csv.writer(output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-
-    for row in reader:
-        # Remove euro symbol and word "euros" from all columns
-        new_row = [re.sub("euros", '', cell) for cell in row]
-       # new_row = [re.sub('euros', '', cell) for cell in row]
-        writer.writerow(new_row)
-
-with open('output3.csv', mode='r') as input_file, open('output4.csv', mode='w', newline='') as output_file:
     reader = csv.reader(input_file, delimiter=',', quotechar='"')
     writer = csv.writer(output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 
@@ -99,7 +75,9 @@ with open('output3.csv', mode='r') as input_file, open('output4.csv', mode='w', 
         montant = re.split('\n(?=\d)', row[2])
         writer.writerow([row[0], row[1]] + montant)
 
-with open('output4.csv', mode='r') as input_file, open('sanctions_amf.csv', mode='w', newline='') as output_file:
+# dans cette partie, je transforme les montants en chiffres
+
+with open('output2.csv', mode='r') as input_file, open('sanctions_amf.csv', mode='w', newline='') as output_file:
     reader = csv.reader(input_file, delimiter=',', quotechar='"')
     writer = csv.writer(output_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 
@@ -109,5 +87,3 @@ with open('output4.csv', mode='r') as input_file, open('sanctions_amf.csv', mode
 
 os.remove("output1.csv")
 os.remove("output2.csv")
-os.remove("output3.csv")
-os.remove("output4.csv")
