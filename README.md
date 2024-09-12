@@ -21,3 +21,5 @@ It's not the most elegant code, but it works! And it's a testament to learning b
 - Python 3.x
 - Chrome WebDriver
 - Required Python packages: `selenium`, `beautifulsoup4`
+
+# README.md made with chatGPT ❤️❤️❤️
